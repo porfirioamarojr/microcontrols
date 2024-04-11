@@ -8,17 +8,20 @@
 * Fonte 12v
 * Cabo USB-B
 * Jumpers
-* Sensor DHT11
-* Sensor BMP085
+* Sensor DHT22
+* Sensor BMP180
 * Sensor LDR
+* 2 Resistores de 10kΩ
 
 OBS: O cabo que deverá ser usado é o do própio arduino, ou um cabo de impressora, e a fonte de um celular na maioria dos casos serve.
 
 
 ## Esquema de Conexões
 
-xxxxxxxxx
+![Esquema elétrico da estação](/user_guide/assets/arduino_station.png)
 
+Observe as conexões na imagem acima e veja que para reproduzir a estação corretamente, as conecões tem que estar exatamente de acordo com o esquema. O BMP180 deverá ser conectado nas seguintes portas __SDA = A4 -> fio azul, SCL = A5 -> fio roxo__. O LDR devera usar a porta analógica __A0 -> fio amarelo__ da placa. Já o DHT22 deverá usar a porta digital __D7 -> fio amarelo__, __GND = terra -> fio preto__, __VCC = 5v -> fio vermelho__.
+****
 ## Intruções para execução
 
 Para reproduzir corretamente o exemplo desta estação selecione o modelo da placa clicando em ```Tools/Ferramentas```, logo após ache a opção ```Board/Placa``` e procure ```Arduino AVR Boards```, em seguida clique na opção ```Arduino Uno```.

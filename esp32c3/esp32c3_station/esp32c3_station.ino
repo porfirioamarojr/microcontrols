@@ -1,31 +1,47 @@
+#include <SPI.h>
 #include <WiFi.h>
-#include "Secret.h"
+#include "Secrets.h"
 #include "ThingSpeak.h"
-#include "driver/temp_sensor.h"
 #include <DHT.h>
 #include <Wire.h>
-#include <Adafruit_BMP085.h>
+#include <Adafruit_BMP280.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+#include "driver/temperature_sensor.h"
 
+//for Internal Temperature
+static const char *TAG = "example";
+temperature_sensor_handle_t temp_sensor; // Variável global para armazenar o identificador do sensor de temperatura
+
+//Sensor BMP280
+#define BMP_SCK  (6)
+#define BMP_MISO (2)
+#define BMP_MOSI (7)
+#define BMP_CS   (10)
+Adafruit_BMP280 bmp(BMP_CS, BMP_MOSI, BMP_MISO,  BMP_SCK);
+
+//Sensor DHT11
 #define DHTTYPE DHT22 // defining model sensor
-const int DHTPIN = 7;     // defining pin sensor
-const char * myWriteAPIKey = "O93U7MP5N03056B0";
-const char * myReadAPIKey = "YHK1465I8DMSXJUJ";
-unsigned long myChannelNumber = 2311546;
-
-Adafruit_BMP085 bmp;
-WiFiClient client;
-
+const int DHTPIN = 8;     // defining pin sensor
 DHT dht(DHTPIN, DHTTYPE);
 
-void initTempSensor();
-void splitString(String str, char delimiter, String substrings[], int maxSize);
+//WiFi
+WiFiClient client;
 
-int response, fail = 0;
+//for Status Counter
+void splitString(String str, char delimiter, String substrings[], int maxSize);
+int fail = 0;
+
+//for ThingSpeak
+int response;
 
 void setup() {
+  //Serial Initializer
   Serial.begin(115200);
-
   while (!Serial) { }
+
+  //WiFi Initializer
   Serial.print("Attempting to connect to SSID: ");
   Serial.println(ssid);
   WiFi.useStaticBuffers(true);
@@ -39,17 +55,27 @@ void setup() {
   Serial.println("Connected to WiFi");
   printWifiStatus();
 
-  bmp.begin();
+  //BMP280 Initializer
+  bmp.begin(0x76);
   if (!bmp.begin()) {
-	  Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+	  Serial.println("Could not find a valid BMP280 sensor, check wiring!");
 	  while (1) {}
   }
-  
-  initTempSensor();//internal temperature sensor
-  ThingSpeak.begin(client);
-  dht.begin();
+  /* Default settings from datasheet. */
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 
-  //Code Block for update counter of errs 
+  //Internal Temperature Sensor Initializer
+  initTempSensor();
+  
+  //DHT Initializer
+  dht.begin();
+  
+  //ThingSpeak Initializer
+  ThingSpeak.begin(client);
   response = ThingSpeak.readMultipleFields(myChannelNumber, myReadAPIKey);
   if(response == 200){
     Serial.println("Get of channel update successful.");
@@ -57,7 +83,8 @@ void setup() {
   }else{
     Serial.println("Problem in get of channel. HTTP error code " + String(response));
   }
-  
+
+  //Code Block for update counter of errs  
   String substrings[37];  //Divide a string em até 37 posições
   String statusMessage = ThingSpeak.getStatus();
   char delimiter = ' ';
@@ -70,12 +97,13 @@ void setup() {
 }
 
 void loop() {
-
   String myStatus = "";
-  float result = 0; // result is the internal temperature
-  temp_sensor_read_celsius(&result);
-  
-  Serial.print(result);
+
+  //for Log in Serial Monitor
+  ESP_LOGI(TAG, "Read temperature");
+  float tsens_value;
+  ESP_ERROR_CHECK(temperature_sensor_get_celsius(temp_sensor, &tsens_value));
+  Serial.print(tsens_value);
   Serial.print("\n");
   float temperature = dht.readTemperature(); // celcius
   Serial.print(temperature);
@@ -84,30 +112,28 @@ void loop() {
   Serial.print(humidity);
   Serial.print("\n");
   int ldr_value = analogRead(A4);
-  //int inverted_ldr_value = 1023 - sensor_ldr;
   Serial.print(ldr_value);
   Serial.print("\n");
-  int pressuresealevel = bmp.readSealevelPressure();
-  Serial.println(pressuresealevel);
   float height = bmp.readAltitude();
   Serial.print(height);
   Serial.print("\n");
-  float pressure = bmp.readPressure();
+  float pressure = bmp.readPressure() * 0.01;// para milibar
   Serial.print(pressure);
   Serial.print("\n");
   float temperature_bmp = bmp.readTemperature();
   Serial.print(temperature_bmp);
   Serial.print("\n");
 
+  //ThingSpeak Fields
   ThingSpeak.setField(1, humidity);
   ThingSpeak.setField(2, temperature);
   ThingSpeak.setField(3, ldr_value);
-  ThingSpeak.setField(4, result);
+  ThingSpeak.setField(4, tsens_value);
   ThingSpeak.setField(5, temperature_bmp);
   ThingSpeak.setField(6, height);
   ThingSpeak.setField(7, pressure);
   
-  //logic for log of status sensors
+  //logic for log of status count
   if(humidity == 0 || isnan(humidity)){
     myStatus += String("Sensor de humidade falhou\\");
     fail += 1;
@@ -120,7 +146,7 @@ void loop() {
     myStatus += String("Sensor de sensor de luminosidade falhou\\");
     fail += 1;
   }
-  if(result == 0 || isnan(result)){
+  if(tsens_value == 0 || isnan(tsens_value)){
     myStatus += String("Sensor de temperatura interna falhou\\");
     fail += 1;
   }
@@ -136,11 +162,12 @@ void loop() {
     myStatus += String("Sensor de pressão falhou\\");
     fail += 1;
   }
- 
+
   myStatus += String("Falhas até o momento: " + String(fail));
   ThingSpeak.setStatus(myStatus); //send status and return response
   delay(20);
   
+  //for update of channel into ThingSpeak
   response = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
   if(response == 200){
     Serial.println("Channel update successful.");
@@ -152,6 +179,7 @@ void loop() {
 
   delay(15000);
 
+  //Restart connection
   if (WiFi.status() != WL_CONNECTED) {
     WiFi.disconnect();
     WiFi.reconnect();
@@ -159,7 +187,7 @@ void loop() {
   }
 }
 
-//Apenas 
+//for WiFi Status Log
 void printWifiStatus() {
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
@@ -174,14 +202,17 @@ void printWifiStatus() {
   Serial.println(" dBm");
 }
 
-//função para pegar a temperatura interna da placa
+//function Internal Temperature Sensor Initializer
 void initTempSensor(){
-    temp_sensor_config_t temp_sensor = TSENS_CONFIG_DEFAULT();
-    temp_sensor.dac_offset = TSENS_DAC_L2;  // TSENS_DAC_L2 is default; L4(-40°C ~ 20°C), L2(-10°C ~ 80°C), L1(20°C ~ 100°C), L0(50°C ~ 125°C)
-    temp_sensor_set_config(temp_sensor);
-    temp_sensor_start();
+  ESP_LOGI(TAG, "Install temperature sensor, expected temp ranger range: 10~50 ℃");
+  temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 50);
+  ESP_ERROR_CHECK(temperature_sensor_install(&temp_sensor_config, &temp_sensor));
+
+  ESP_LOGI(TAG, "Enable temperature sensor");
+  ESP_ERROR_CHECK(temperature_sensor_enable(temp_sensor));
 }
 
+//for Status Counter
 void splitString(String str, char delimiter, String substrings[], int maxSize) {
   int index = 0; // Índice para as substrings
   int lastIndex = 0; // Índice do último caractere de delimitação

@@ -7,15 +7,18 @@
 * Fonte 12v
 * Cabo Micro A/B
 * Jumpers
-* Sensor DHT11
+* Sensor DHT22
 * Sensor BMP280
 * Sensor LDR
+* 2 Resistores de 10kΩ
 
 OBS: O cabo micro A/B, em resumo cabo de celular antigo, que deve suportar a transferência de dados, caso contário não conseguirá subir o código para a placa, e a fonte de celular na maioria dos casos serve.
 
 ## Esquema de Conexões
 
-xxxxxxxxx
+![Esquema elétrico da estação](/user_guide/assets/esp32c3_station.png)
+
+Observe as conexões na imagem acima e veja que para reproduzir a estação corretamente, as conecões tem que estar exatamente de acordo com o esquema. O BMP280 deverá ser conectado nas seguintes portas __SDA = IO7 -> fio roxo, SCL = IO6 -> fio azul, SDO = IO2 -> fio marrom, CSB = IO10 -> fio branco__. O LDR devera usar a porta analógica __A4 = IO4 -> fio amarelo__ da placa. Já o DHT22 deverá usar a porta digital __IO8 -> fio amarelo__, __GND = terra -> fio preto__, __VCC = 5v -> fio vermelho__.
 
 ## Intruções para execução
 
