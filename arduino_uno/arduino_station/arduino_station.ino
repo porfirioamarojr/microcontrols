@@ -1,4 +1,4 @@
-#include "Secrets.h"
+#include "Secret.h"
 #include <Ethernet.h>
 #include <Wire.h>
 #include "ThingSpeak.h"
@@ -62,7 +62,7 @@ void loop() {
   float height = bmp.readAltitude();
   Serial.print(height);
   Serial.print("\n");
-  float pressure = bmp.readPressure();
+  float pressure = bmp.readPressure() * 0.01;// para milibar
   Serial.print(pressure);
   Serial.print("\n");
   float temperature_bmp = bmp.readTemperature();

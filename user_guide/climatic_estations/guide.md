@@ -7,7 +7,7 @@
   - Para a placa [Arduino Uno](https://www.arduino.cc/) utilize a lib ```Arduino AVR Boards by Arduino``` na versão __1.8.6__.
   - Para a [HttpClient](https://github.com/amcewen/HttpClient) utilize a lib ```HttpClient by Adrian McEwen <adrianm@mcqn.com>``` na versão __2.2.0__.
   - Para a [Ethernet](https://www.arduino.cc/) utilize a lib ```Ethernet by Various (see AUTHORS file for details)``` na versão __2.0.2__.
-  - Para o sensor [Adafruit BMP085](https://github.com/adafruit/Adafruit-BMP085-Library)utilize a lib ```Adafruit BMP085 Library by Adafruit``` na versão __1.2.4__.
+  - Para o sensor [Adafruit BMP085](https://github.com/adafruit/Adafruit-BMP085-Library) utilize a lib ```Adafruit BMP085 Library by Adafruit``` na versão __1.2.4__.
 
 * [ESP32C3 Estation](esp32c3_estation.md) é uma estação do tipo móvel que se conecta a internet via WiFi e pode ser transportada para outros locais sem que exista a necessidade de cabos para isso. A escolha por repoduzir esta estação faz se necessário a instalação das seguintes bibliotecas com as respectivas versões
   

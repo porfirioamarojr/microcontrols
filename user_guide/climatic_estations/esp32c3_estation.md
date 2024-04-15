@@ -20,7 +20,7 @@ OBS: O cabo micro A/B, em resumo cabo de celular antigo, que deve suportar a tra
 
 Observe as conexões na imagem acima e veja que para reproduzir a estação corretamente, as conecões tem que estar exatamente de acordo com o esquema. O BMP280 deverá ser conectado nas seguintes portas __SDA = IO7 -> fio roxo, SCL = IO6 -> fio azul, SDO = IO2 -> fio marrom, CSB = IO10 -> fio branco__. O LDR devera usar a porta analógica __A4 = IO4 -> fio amarelo__ da placa. Já o DHT22 deverá usar a porta digital __IO8 -> fio amarelo__, __GND = terra -> fio preto__, __VCC = 5v -> fio vermelho__.
 
-## Intruções para execução
+## Intruções para Execução
 
 Para reproduzir corretamente o exemplo desta estação selecione o modelo da placa clicando em ```Tools/Ferramentas```, logo após ache a opção ```Board/Placa``` e procure ```esp32```, em seguida clique na opção ```ESP32C3 Dev Module```.
 
