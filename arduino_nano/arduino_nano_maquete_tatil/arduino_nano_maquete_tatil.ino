@@ -5,7 +5,7 @@
 
 const short int triggerPin = 9; //Pino 9 envia o pulso para gerar o echo
 const short int echoPin = 12; //Pino 12 recebe o pulso do echo   
-#define button1 13
+#define button1 A0
 #define button2 2
 #define button3 3
 #define button4 4
@@ -20,7 +20,7 @@ Ultrasonic ultrasonic(triggerPin, echoPin);
 
 SoftwareSerial playerMP3Serial(pinRx, pinTx);
 DFRobotDFPlayerMini playerMP3;
-short int volumeMP3 = 20; //definimos o volume, entre 0 e 30.
+short int volumeMP3 = 30; //definimos o volume, entre 0 e 30.
 #define DEBUG
 
 void setup() {
@@ -29,7 +29,7 @@ void setup() {
 
   pinMode(triggerPin, OUTPUT);  // define o pino triger como saida.   
   pinMode(echoPin, INPUT);  // define o pino echo como entrada.   
-  pinMode(button1, INPUT); //declaramos Button como INPUT.
+  pinMode(button1, INPUT_PULLUP); //declaramos Button como INPUT.
   pinMode(button2, INPUT_PULLUP); //declaramos Button como INPUT_PULLUP.
   pinMode(button3, INPUT_PULLUP); //declaramos Button como INPUT_PULLUP.
   pinMode(button4, INPUT_PULLUP); //declaramos Button como INPUT_PULLUP.
@@ -62,21 +62,22 @@ void loop() {
   int distancia;
 
   distancia = (ultrasonic.read()); //exibido no computador qual a medicao do sensor. Essa função faz todo os calculos e fornece as respostas   
-  if (distancia > 15 && distancia < 50){
-    playerMP3.playFolder(1, 2);
+  if (distancia > 10 && distancia < 15){
+    playerMP3.playFolder(1, 5);
     Serial.println("Tocando pasta 01, musica 002 -SENSOR-");
-    Serial.println("Estou funcionando!!!");
+    //Serial.println("Estou funcionando!!!");
     delay(1000);
   }/*else
     Serial.println("Estou inativo :)");*/
 
   if (digitalRead(button1) == false){
-    playerMP3.playFolder(1, 1);
+    playerMP3.playFolder(1, 8);
     Serial.println("Tocando pasta 01, musica 001 button1");
+    delay(1000);
   }
 
   if (digitalRead(button2) == false){
-    playerMP3.playFolder(1, 2);
+    playerMP3.playFolder(1, 5);
     Serial.println("Tocando pasta 01, musica 002 button2");
     delay(1000);
   }
@@ -91,7 +92,7 @@ void loop() {
     delay(1000);
   }
   if (digitalRead(button5) == false){
-    playerMP3.playFolder(1, 1);
+    playerMP3.playFolder(1, 7);
     Serial.println("Tocando pasta 01, musica 001 button5");
     delay(1000);
   }
@@ -110,5 +111,4 @@ void loop() {
     Serial.println("Tocando pasta 01, musica 002 button8");
     delay(1000);
   }
-
 }
